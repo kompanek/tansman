@@ -89,3 +89,17 @@ to items, and to map slots to actual dates and times. This is
 straightforward. I'd also want to tweak the model to account
 for different days having different time available, the notion
 of having days off (maybe a day a week), etc.
+
+## References
+
+* "Unbounded Human Learning: Optimal Scheduling for Spaced Repetition", Reddy,
+et al. This is a pretty sophisticated way of doing things. Can I do something
+using LP or mixed IP that approximates this?
+
+* Nice little write up on spaced repetition. 
+  http://blog.pickcrew.com/the-science-of-learning-new-languages/
+
+* The wikipedia page on spaced repetition.
+  https://en.wikipedia.org/wiki/Spaced_repetition
+
+* http://pianopracticeassistant.com/spaced-repetition/
