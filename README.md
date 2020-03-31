@@ -38,15 +38,17 @@ The theoretical model motivating this is the "spaced repetition" model in learni
 
 # Thinking about inputs
 
-* Time available per day to practice
-* Amount of time needed to master an item (e.g., phrase or passage)
+* Time available per session to practice
+* Number of sessions each day
+* An estimate of time needed to master each practice item (e.g., phrase or passage)
+* A way to related items it's beneficial to practice together in the same session
 * Overall time available for a set of related items (e.g., a section of music)
 * The difficulty vs. fun dimensions of a particular task--idea is that
   a practice session should include both practice that feels like a chore
   and more fun/interesting tasks (below use "energy" in a sense of how much
   of a drain it is on enthusiasm. There's probably a better name.)
-* Ideal amount of time to wait between practicing a particular item (consolidation)
-* Maximum time to wait between sessions practicing a particular item (forgetting)
+* Ideal amount of time to wait between practicing each item (consolidation)
+* Maximum time to wait between sessions practicing each item (forgetting)
 
 # LP Forumulation #1
 
@@ -68,88 +70,7 @@ on a particular task (row) in a particular time slot (column).
 
 ## LP Formulation
 
-**Indices**
-\begin{align*}
-i &\in \{0, 1,  \ldots, n_{items}-1 \} \\
-t &\in \{0, 1, \ldots, n_{slots}-1 \} \\
-t_\delta &\in \{0, 1, \ldots, WINDOWSIZE\}
-\end{align*}
-
-See below for the use of $t_\delta$ and $WINDOWSIZE$ to express 
-limits on practice "density".
-
-**Data**
-
-\begin{table}[h]
-\begin{tabular}{ll}
-$n_{items}$             & Number of items to schedule \\
-$n_{slots}$             & Number of time slots available \\
-$ENERGYUSED_i$          & Amount of mental "energy" required per chunk of practice time for task i \\
-$TIMEAVAILABLE_t$       & Time available during a training slot $t$ (chunks per day) \\
-$TIMEPERITEM_i$         & Practice time needed to master item $i$ \\
-$MINPERWINDOW$  & Minimum number of training slots for item $i$ within a window (days) \\
-$MAXPERWINDOW$  & Maximum number of training slots for item $i$ within a window (days) \\
-$WINDOWSIZE$            & Used to express minimum and maximum "density" of practice days (days)\\
-\end{tabular}
-\end{table}
-
-
-**Variables**
-\begin{table}[h]
-\begin{tabular}{ll}
-$P_{i,t}$              & Amount of practice in time slot $t$ for item $i$ (chunks of study)\\
-$ENERGY_{t}$           & Energy expended on a given day (really a macro not a variable)\\
-$ENERGYDECREASE_t$     & Amount by which energy expenditure decreased at $t$ from $t-1$\\
-$ENERGYINCREASE_t$     & Amount by which energy expenditure increased at $t$ from $t-1$\\
-$TIMESOFAR_{i,t}$      & Amount of practice for item $i$ up to and including time $t$\\
-\end{tabular}
-\end{table}
-
-**Objective**
-
-Minimize
-
-$\sum_{i, t} TIMEPERITEM_i P_{i,t} +$
-$\sum_{t=1}{(ENERGYINCREASE_t - ENERGYDECREASE_t)} +$
-$\sum_{i,t} TIMESOFAR_{i,t}$
-
-**Constraints**
-\begin{align}
-& \sum_{i}{P_{i,t}} \leq TIMEAVAILABLE_t\ \forall\ t \tag{C1: No more time allocated to time slot than available} \\
-& \sum_{t}{P_{i,t}} \geq TIMEPERITEM_i\   \forall\ i \tag{C2: Practice time greater than required to learn item} \\
-& \sum_{i}{P_{i,t + t_\delta}}  \geq MINPERWINDOW\ \forall i, t \forall t_\delta 
-  \tag{C3: Practice spacing - minimum amount of practice in window} \\
-& \sum_{i}{P_{i,t + t_\delta}}  \leq MAXPERWINDOW\ \forall i, t
-  \tag{C4: Practice spacing for rest - maximum amount of practice in window}\\
-& TIMESOFAR_{i,t} = \sum_i{\sum_{t0=0 \ldots t}{P_{i,t0}}}\ \forall i,t 
-   \tag{C5: Definition. Used in objective to bias toward finishing earlier}\\
-& ENERGY_{t} = \sum_i{ENERGYUSED_i \times P_{i,t}}
-   \tag{C6: Definition. Used in definition of increase/decrease for smoothing}\\
-& ENERGY_{t+1} - ENERGY_{t} = ENERGYINCREASE_{t+1} - ENERGYDECREASE_{t+1}
-   \tag{C7: Change in energy to smooth. Minimization means only one non-zero}
-\end{align}
-
-Note I had to introduce the $WINDOWSIZE$ parameter in order to have a way
-to express (C3) and (C4). Right now this is something that needs
-to be specified as part of the configuration of the model. It's a bit
-unnatural.
-
-When I first started experimenting I noticed that these constraints could
-result in practice schedules "pushed to the right" with low density
-slots to the left of the schedule because I had not expressed the 
-idea of optimizing the amount of calendar time spent. As a heuristic,
-I decided to incorporate another variable: $TIMESOFAR_{i,t}$ defined as the sum
-of practice time for each item $i$ up to time $t$. The idea
-was to maximize the sum of these times as a "timeliness" metric. It ends
-up penalizing late completion for each task.
-
-
-The time window is sort of awkward and creates some odd scheduling artifacts.
-Next I'm going to try different sorts of energy surpluses/deficits. where there
-are constraints that prevent it from going too high or too low. For each
-practice item a day of rest will deplete the "learning" banked, while a day of
-practice will increase it, but only within a threshold. Equivalent to production
-smoothing in other problems I've seen.
+See ...
 
 ## Practical application
 
