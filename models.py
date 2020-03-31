@@ -136,7 +136,7 @@ class SimplePracticeScheduleSolver(LpProblem):
         status = self.solve()
         if status == LpStatusInfeasible:
             if VERBOSE:
-                msg = "Infeasible. No solution for n_items={} and n_slots={}. Increase time available?"
+                msg = "Infeasible. No solution for n_items={} and n_slots={}."
                 logging.warning(msg.format(self.n_items, self.n_slots))
             return None
         schedule_matrix = np.zeros(shape=(self.n_items, self.n_slots))
@@ -262,7 +262,8 @@ def show_solution(solver):
 
 
 if __name__ == "__main__":
-    print("Minimum possible total time for sonata3", sum(config_problem1["time_per_item"]))
+
+    print("Minimum possible total time for config_small", sum(config_problem1["time_per_item"]))
     solver = solve(**config_small)
     show_solution(solver)
 
