@@ -1,6 +1,8 @@
 # Tansman music practice scheduler tool
 
-An attempt at building an LP-based optimal scheduler for music practice.
+An attempt at building an LP-based optimal scheduler for music practice using
+Pulp. May also look at other tools for mixed-integer programming and the like
+(CyLP yaposib Pyomo).
 
 # Problem and Motivation
 
