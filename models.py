@@ -203,6 +203,9 @@ def solve(n_items, time_available, time_per_item, fun_per_item, window_size=10, 
     return solver
 
 
+def model_parameters(**kwargs):
+    return _config(**kwargs)
+
 def _config(**kwargs):
     return locals()['kwargs']
 
