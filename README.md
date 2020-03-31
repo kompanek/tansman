@@ -1,3 +1,6 @@
+Test:
+![formula](https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1)
+
 # Tansman music practice scheduler tool
 
 An attempt at building an LP-based optimal scheduler for music practice.
