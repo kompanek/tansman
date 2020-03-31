@@ -1,5 +1,5 @@
 ---
-title: "OR 541 - Spring 2020 - Project Report DRAFT "
+title: "Tansman Scheduler: Model #1"
 output: pdf_document
   
 author: "Andrew Kompanek (akompane@gmu.edu)"
@@ -26,82 +26,13 @@ use_python("/usr/local/bin/python")
 #py_config()
 ```
 
-# Problem and Motivation
-
-Every musician, professional and amateur alike, has faced the challenge of
-making efficient use of practice time. In the course of learning a long, complex
-piece of music, we can easily fall into patterns where we know that we're not
-making the best of my practice time. One way in which we can make better use of
-our time is of course planning up front. This project is about building a system
-for generating a schedule automatically given some information about the
-practice items, and the time available.
-
-(A bit of tangent but this is the honest motivation for me.) I tend to fall
-victim to two classes of traps. The first sort of trap, and the primary
-motivation for this project, I have a tendency to fall into is the
-"over-commitment" trap. It's easy when confronted with a large piece not to
-appreciate the amount of calendar time required, especially given the
-requirements of rest for consolidation. The second class of trap is ineffective
-repetition. The first variation, which I'll "masochistic repetition" is what
-happens I'm so fixated on a particular difficult passage that I ignore
-everything else even though it's clear the repetition is at best leading to
-diminishing returns and at worse simply reinforcing problems. There's a second
-sort of unproductive repetition I'll call "hedonistic repetition". This occurs
-when I manage to master a small section of music and repeatedly play it because
-it satisfies a need to feel good about progress, and perhaps as an avoidance
-measure. The second class of trap is "insufficient reinforcement" trap. In this
-case, I make progress on a particular section, and move onto another, but fail
-to revisit the original piece within a sufficient period of time. Inevitably, I
-end up having to relearn the passage. (A good schedule can only help so much
-with this pattern, but I thought it was a good broader motivator and it's a
-genuine challenge for me.)
-
-There are many strategies for combatting dysfunctional practice approaches in
-the moment, and for recognizing when it's time to move onto something new. This
-is critical, but for this project I'm interested in ways in which planning for
-efficient use of time can help keep me on track. Can I develop more optimal
-practice schedules that I can use to structure time and that I can trust to keep
-me on track? (Aside: Not solving the dynamic problem).
-
-Background on spaced repetition. For my purposes, need time for memory consolidation 
-through rest. Breaks from particular tasks.
-
-# The inputs (qualitative)
-
-* Time available per day to practice
-* Amount of time needed to master an item (e.g., phrase or passage)
-* Overall time available for a set of related items (e.g., a section of music)
-* The difficulty vs. fun dimensions of a particular task--idea is that
-  a practice session should include both practice that feels like a chore
-  and more fun/interesting tasks (below use "energy" in a sense of how much
-  of a drain it is on enthusiasm. There's probably a better name.)
-* Ideal amount of time to wait between practicing a particular item (consolidation)
-* Maximum time to wait between sessions practicing a particular item (forgetting)
-
-# LP model
-
-Focus on finding a reasonable solution that meets constraints capturing some of
-those inputs and a larger goal. In particular, given a larger goal--say,
-mastering a particular section of a large piece of music--, and set of tasks
-that require a certain amount of practice (units of practice time) and entail
-certain constraints, a particular amount of calendar time (number of slots), and
-a particular amount of time available per slot (units of practice time), is
-there a feasible schedule?
-
-* A practice *item* is a chunk of music, technique exercise, etc.
-* A time *slot* corresponds to a unit of time like a day or a practice session
-
-The schedule produced is a matrix. The amount of practice time spent 
-on a particular task (row) in a particular time slot (column). 
 
 ## LP Formulation
 
 **Indices**
-\begin{align*}
-i &\in \{0, 1,  \ldots, n_{items}-1 \} \\
-t &\in \{0, 1, \ldots, n_{slots}-1 \} \\
-t_\delta &\in \{0, 1, \ldots, WINDOWSIZE\}
-\end{align*}
+$i \in \{0, 1,  \ldots, n_{items}-1 \}$;
+$t \in \{0, 1, \ldots, n_{slots}-1 \}$;
+$t_\delta \in \{0, 1, \ldots, WINDOWSIZE\}$
 
 See below for the use of $t_\delta$ and $WINDOWSIZE$ to express 
 limits on practice "density".
@@ -171,68 +102,9 @@ of practice time for each item $i$ up to time $t$. The idea
 was to maximize the sum of these times as a "timeliness" metric. It ends
 up penalizing late completion for each task.
 
-
 The time window is sort of awkward and creates some odd scheduling artifacts.
 Next I'm going to try different sorts of energy surpluses/deficits. where there
 are constraints that prevent it from going too high or too low. For each
 practice item a day of rest will deplete the "learning" banked, while a day of
 practice will increase it, but only within a threshold. Equivalent to production
 smoothing in other problems I've seen.
-
-## Practical application
-
-This is applied in the context of a work flow and algorithm like:
-
-1. User breaks up the tasks to be completed into logical
-   groupings. Each grouping represent a set of tasks 
-   that the user wants to bring to the next level. 
-1. Goal is to reach "next level" of competence (which corresponds
-   to different parameters, in particular permitting more time to
-   pass until an item is revisted and practiced again corresponding
-   to a firmer grasp on the material, and natural spacing)
-1. User specifies time available per slot, descriptions of items,
-   etc.
-1. User has choice to runs scheduler tool with an explicit number
-   of time slots or have the scheduler iterate into it finds 
-   a feasible solution.
-1. Schedule is the matrix described, rendered in a meaningful way
-
-I'd also want to update the software to allow names to be assigned
-to items, and to map slots to actual dates and times. This is
-straightforward. I'd also want to tweak the model to account
-for different days having different time available, the notion
-of having days off (maybe a day a week), etc.
-
-# LP as an approximation to a more general model
-
-A little more theoretical material. Will need to understand
-how these state models are mapped. Again, the main limitation
-is the LP gave me now way of explicitly saying things about time
-"between practice" for items. Also no way for state-dependent
-parameters. That is, there's no way to say once we complete
-$k$ practice sessions under constraints for item $i$, different
-parameters to constraints go into effect. That said, it's not
-unreasonable to think in terms of chunks of practice time where
-within a chunk the goal is to bring each item to the "next level".
-
-# Proof of concept implementation
-
-```{python input.R, eval=FALSE, code=readLines("project.py")}
-```
-
-# References
-
-* "Unbounded Human Learning: Optimal Scheduling for Spaced Repetition", Reddy,
-et al. This is a pretty sophisticated way of doing things. Can I do something
-using LP or mixed IP that approximates this?
-
-* Nice little write up on spaced repetition. 
-  http://blog.pickcrew.com/the-science-of-learning-new-languages/
-
-* The wikipedia page on spaced repetition.
-  https://en.wikipedia.org/wiki/Spaced_repetition
-
-
-
-
-
