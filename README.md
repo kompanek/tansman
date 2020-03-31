@@ -1,8 +1,10 @@
 # Tansman music practice scheduler tool
 
 An attempt at building an LP-based optimal scheduler for music practice using
-Pulp. May also look at other tools for mixed-integer programming and the like
-(CyLP yaposib Pyomo).
+Pulp. My goal is to build a sort of idealized normative optization model, a model based purely on LP, 
+and then a model based mixed integer programming. The challenge is going to be
+dealing with the fact that learning models are intrinsically stateful, and that
+some of the relationships aren't really linear.
 
 # Problem and Motivation
 
