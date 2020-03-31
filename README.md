@@ -50,9 +50,7 @@ The theoretical model motivating this is the "spaced repetition" model in learni
 * Ideal amount of time to wait between practicing each item (consolidation)
 * Maximum time to wait between sessions practicing each item (forgetting)
 
-# LP Forumulation #1
-
-# LP model
+# Overall concept
 
 Focus on finding a reasonable solution that meets constraints capturing some of
 those inputs and a larger goal. In particular, given a larger goal--say,
@@ -67,10 +65,6 @@ there a feasible schedule?
 
 The schedule produced is a matrix. The amount of practice time spent 
 on a particular task (row) in a particular time slot (column). 
-
-## LP Formulation
-
-See ...
 
 ## Practical application
 
