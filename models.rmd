@@ -39,18 +39,16 @@ limits on practice "density".
 
 **Data**
 
-\begin{table}[h]
-\begin{tabular}{ll}
-$n_{items}$             & Number of items to schedule \\
-$n_{slots}$             & Number of time slots available \\
-$ENERGYUSED_i$          & Amount of mental "energy" required per chunk of practice time for task i \\
-$TIMEAVAILABLE_t$       & Time available during a training slot $t$ (chunks per day) \\
-$TIMEPERITEM_i$         & Practice time needed to master item $i$ \\
-$MINPERWINDOW$  & Minimum number of training slots for item $i$ within a window (days) \\
-$MAXPERWINDOW$  & Maximum number of training slots for item $i$ within a window (days) \\
-$WINDOWSIZE$            & Used to express minimum and maximum "density" of practice days (days)\\
-\end{tabular}
-\end{table}
+\begin{align*}
+n_{items}             && \text{Number of items to schedule} \\
+n_{slots}             && \text{Number of time slots available} \\
+ENERGYUSED_i          && \text{Amount of mental "energy" required per chunk of practice time for task i} \\
+TIMEAVAILABLE_t       && \text{Time available during a training slot $t$ (chunks per day)} \\
+TIMEPERITEM_i         && \text{Practice time needed to master item $i$} \\
+MINPERWINDOW  && \text{Minimum number of training slots for item $i$ within a window (days)} \\
+MAXPERWINDOW  && \text{Maximum number of training slots for item $i$ within a window (days)} \\
+WINDOWSIZE            && \text{Used to express minimum and maximum "density" of practice days (days)}\\
+\end{align*}
 
 
 **Variables**
