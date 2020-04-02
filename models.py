@@ -47,13 +47,6 @@ from colorama import Fore, Back, Style
 #   a logger that does something reasonable in R Studio.
 VERBOSE = True
 
-# Interesting. Not much sensitivity to these relative values
-# Also interesting is that sometimes I see patterns but not always
-# I think there's a random element in the solver
-COEFF_TOTAL_PRACTICE_TIME = 1
-COEFF_FUN_TOTAL = 1
-COEFF_TIMELINESS = 1
-
 pd.set_option("display.width", 150)
 pd.set_option("display.max_columns", 30)
 
@@ -66,7 +59,7 @@ class SimplePracticeScheduleSolver(LpProblem):
                  time_per, erg_used,
                  win_sz=10, min_per_win=1, max_per_win=4,
                  item_names=None):
-        LpProblem.__init__(self, name, LpMaximize)
+        LpProblem.__init__(self, name, LpMinimize)
         self.n_items = n_items    # study items
         self.n_slots = n_slots    # time slots
         self.time_avail = time_avail
@@ -92,7 +85,7 @@ class SimplePracticeScheduleSolver(LpProblem):
         # Variables - two-dimensional array tasks x time slot
         for i in range(0, self.n_items):
             for t in range(0, self.n_slots):
-                self.practice[(i, t)] = LpVariable("P_{}_{}".format(i, t), lowBound=0)
+                self.practice[(i, t)] = LpVariable("P_{}_{}".format(i, t), cat='Integer', lowBound=0)
                 self.time_so_far[(i, t)] = LpVariable("T_{}_{}".format(i, t), lowBound=0)
         # Energy usage variables
         for t in range(0, self.n_slots):
@@ -112,7 +105,7 @@ class SimplePracticeScheduleSolver(LpProblem):
         # Objective is to use the least amount of resource to complete tasks in
         # as timely a manner as possible while maximizing fun on a given day (i.e., ensuring a mix of boring
         # and non-boring tasks.
-        self.objective = COEFF_TOTAL_PRACTICE_TIME*total_practice_time - self.erg_deltas
+        self.objective = total_practice_time + self.erg_deltas - self.item_timeliness_metric
         # Constraints
         # Total time across tasks less than that available within a time slot (e.g., might be hours/day)
         for t in range(0, self.n_slots):
@@ -128,11 +121,6 @@ class SimplePracticeScheduleSolver(LpProblem):
         for i in range(0, self.n_items):
             for t in range(0, self.n_slots):
                 self += (self.time_so_far[(i, t)] == sum(self.practice[(i, t0)] for t0 in range(0, t-1)))
-        # Experimental - no more than 2 time units of study per slot per item
-        # Primitive way to add "diversity"
-        for i in range(0, self.n_items):
-            for t in range(0, self.n_slots):
-                self += self.practice[(i, t)] <= 2
 
         # Energy delta definition
         for i in range(0, self.n_items-1):
@@ -144,7 +132,7 @@ class SimplePracticeScheduleSolver(LpProblem):
         # Use a sliding window approximation. At least one practice session in every
         # window, and at least one rest. Sort of local density.
         for i in range(0, self.n_items):
-            for t in range(0, self.n_slots - self.win_sz - 1):
+            for t in range(0, self.n_slots - self.win_sz):
                 self += sum(self.practice[(i, t+t_delta)] for t_delta in range(0, self.win_sz)) >= self.min_per_win
                 self += sum(self.practice[(i, t+t_delta)] for t_delta in range(0, self.win_sz)) <= self.max_per_win
 
@@ -255,9 +243,9 @@ config_small = _config(n_items=4,
                        time_per=[2]*25,
                        erg_used=[1, 2, 1, 2]*25,
                        item_names=["Easy", "Hard", "Easy", "Hard"],
-                       win_sz=2,
-                       min_per_win=0,
-                       max_per_win=1)
+                       win_sz=3,
+                       min_per_win=1,
+                       max_per_win=2)
 
 
 def show_solution(solver):
@@ -284,8 +272,11 @@ def show_solution(solver):
 if __name__ == "__main__":
 
     print("Minimum possible total time for config_small", sum(config_problem1["time_per"]))
-    solver = solve(**config_small)
-    show_solution(solver)
+
+    for slot_count in [7, 12]:
+        solver = solve(**config_small, min_slots=slot_count, max_slots=slot_count)
+        if solver.status == LpStatusOptimal:
+            show_solution(solver)
 
     if False:
         solver = solve(**config_sonata3)
@@ -297,14 +288,12 @@ if __name__ == "__main__":
         solver = solve(**config_problem1)
         solvers.append(solver)
         show_solution(solver)
-    
-        COEFF_FUN_TOTAL = 0
+
         solvers = []
         solver = solve(**config_problem1)
         solvers.append(solver)
         show_solution(solver)
-    
-        COEFF_FUN_TOTAL = 5
+
         solvers = []
         solver = solve(**config_problem1)
         solvers.append(solver)
