@@ -1,7 +1,6 @@
 ---
 output:
   pdf_document: default
-  html_document: default
 ---
 ## Overall Concept
 
@@ -52,48 +51,52 @@ limits on practice "density".
 ### Variables
 
 \begin{align*}
-&P_{i,t}      && \text{Amount of practice in time slot $t$ for item $i$ (number of units of time study)}\\ & && \textbf{NB: This is an integer.}\\
+&P_{i,t}      && \text{Amount of practice in time slot $t$ for item $i$ (number of units of time study)}\\
 &ERG_{t}           && \text{Energy expended on a given day (macro over $P$)}\\
 &ERGDEC_t     && \text{Amount by which energy expenditure decreased at $t$ from $t-1$}\\
 &ERGINC_t     && \text{Amount by which energy expenditure increased at $t$ from $t-1$}\\
 &TIMESOFAR_{i,t}      && \text{Amount of practice for item $i$ up to and including time $t$ (Macro over $P$)}\\
 \end{align*}
 
+where $P_{i,t} \in \mathbb Z_{\ge 0};\ ERG_{t}, ERGINC_{t}, ERGDEC_{t}\in \mathbb R_{\ne 0}$.
+
+
 ### Objective and Constraints
 
-Minimize $\underbrace{\sum_{i, t} TIMEPER_i P_{i,t}}_{\text{(1) Overall time spent}} 
-        + \underbrace{\sum_{t=1}{(ERGINC_t - ERGDEC_t)}}_{\text{(2) Energy smoothing}}
-        + \underbrace{\sum_{i,t}TIMESOFAR_{i,t}}_{\text{(3) Calendar time}}$
+Minimize $\underbrace{\sum_{i, t} TIMEPER_i P_{i,t}}_{\text{(O1) Overall time spent}} 
+        + \underbrace{\sum_{t=1}{(ERGINC_t - ERGDEC_t)}}_{\text{(O2) Energy smoothing}}
+        + \underbrace{\sum_{i,t}TIMESOFAR_{i,t}}_{\text{(O3) Calendar time}}$
 
 s.t.
 \begin{align*}
 && \sum_{i}{P_{i,t}} &\leq TIMEAVAIL_t\ \forall\ t 
-  && \text{C1: No more time allocated to time slot than available} \\
+  && \text{(C1) No more time allocated to time slot than available} \\
 && \sum_{t}{P_{i,t}} &\geq TIMEPER_i\   \forall\ i 
-  && \text{C2: Practice time greater than required to learn item} \\
+  && \text{(C2) Practice time greater than required to learn item} \\
 && \sum_{i}{P_{i,t + t_\delta}}  &\geq MINPERWIN\ \forall i, t \forall t_\delta 
-  && \text{C3: Practice spacing - min. amount in window} \\
+  && \text{(C3) Practice spacing - min. amount in window} \\
 && \sum_{i}{P_{i,t + t_\delta}}  &\leq MAXPERWIN\ \forall i, t
-  && \text{C4: Practice spacing for rest - max. amount in window}\\
+  && \text{(C4) Practice spacing for rest - max. amount in window}\\
 && TIMESOFAR_{i,t} &= \sum_i{\sum_{t0=0 \ldots t}{P_{i,t0}}}\ \forall i,t 
-  && \text{C5: Defn. Used in objective to bias toward finishing earlier}\\
+  && \text{(C5) Defn. Used in objective to bias toward finishing earlier}\\
 && ERG_{t} &= \sum_i{ERGUSED_i \times P_{i,t}}\ \forall t
-  && \text{C6: Defn. Used to define increase/decrease for smoothign.}\\
+  && \text{(C6) Defn. Used to define increase/decrease for smoothing.}\\
 && ERGINC_{t+1} - ERGDEC_{t+1} &= ERG_{t+1} - ERG_{t}\ \forall t
-  && \text{C7: Defn. Change in either direction. One always zero.}\\
+  && \text{(C7) Defn. Change in either direction. One always zero.}\\
 \end{align*}
 
-where $P_{i,t} \in \mathbb Z_{\ge 0};\ ERG_{t}, ERGINC_{t}, ERGDEC_{t} \geq 0\ \text{C8: Variable domains}$
 
 ### Discussion
 
 The objective function is composed of three positive terms
-to be minimized. The first term (1)
+to be minimized. The first term (O1)
 captures the amount the sum of the total amount of practice time across all
-items. The second term (2) is the relative energy expenditure on practice
+items. The second term (O2) is the relative energy expenditure on practice
 from day to day. This smoothes energy expenditure, which has the effect
 of preferring spreading around the more energy-sapping work, and increasing
-the diversity with respect to intensity on any given day. 
+the diversity with respect to intensity on any given day. Finally
+(O3) was the only way I could figure out how to express a preference
+for completing everything as early as possible.
 
 The first two constraints are essentially supply and demand constraints. 
 The time spent practicing cannot exceed the time available for practice (C1)
@@ -122,7 +125,7 @@ There are several known issues with this formulation that I will need to address
 with the expected "satisfaction" experience by the practicer. I'll need to add
 coefficients to the required Data that encode this.
 
-* It's not clear that $TIMESOFAR_{i,t}$ is needed in the model. It's not clear that preference should be given to completing tasks as early as possible. That is, it's
+* It's not clear that $TIMESOFAR_{i,t}$ is needed in the model (O3). It's not clear that preference should be given to completing tasks as early as possible. That is, it's
 not clear a priori that given excess days that "packing" the schedule is best. It may
 be that this is needs to be scaled in in some way (see above).
 
