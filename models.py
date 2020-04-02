@@ -289,7 +289,6 @@ if __name__ == "__main__":
         solvers.append(solver)
         show_solution(solver)
 
-        solvers = []
         solver = solve(**config_problem1)
         solvers.append(solver)
         show_solution(solver)
