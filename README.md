@@ -23,7 +23,7 @@ trying to establish a practice regime:
 appreciate the amount of calendar time required, especially given the
 requirements of rest for consolidation.
 
-* The "ineffective repetition" trap. The first variation, which I'll "masochistic repetition" is what
+* The "ineffective repetition" trap. The first variation, "masochistic repetition" is what
 happens I'm so fixated on a particular difficult passage that I ignore
 everything else even though it's clear the repetition is at best leading to
 diminishing returns and at worse simply reinforcing problems. 
