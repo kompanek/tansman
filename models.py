@@ -62,27 +62,31 @@ pd.set_option("display.max_columns", 30)
 # is actually working. The practice density stuff above is especially problematic.
 class SimplePracticeScheduleSolver(LpProblem):
     # Note: time available per slot
-    def __init__(self, name, n_items, n_slots,  time_available, time_per_item, fun_per_item,
-                 window_size=10, min_practice_per_window=1, max_practice_per_window=4,
+    def __init__(self, name, n_items, n_slots, time_avail, erg_avail,
+                 time_per, erg_used,
+                 win_sz=10, min_per_win=1, max_per_win=4,
                  item_names=None):
         LpProblem.__init__(self, name, LpMaximize)
         self.n_items = n_items    # study items
         self.n_slots = n_slots    # time slots
-        self.time_available = time_available
-        self.time_per_item = time_per_item
-        self.fun_per_item = fun_per_item
-        self.window_size = window_size
-        self.min_practice_per_window = min_practice_per_window
-        self.max_practice_per_window = max_practice_per_window
+        self.time_avail = time_avail
+        self.time_per = time_per
+        self.erg_used = erg_used
+        self.win_sz = win_sz
+        self.min_per_win = min_per_win
+        self.max_per_win = max_per_win
         self.practice = {}        # (s, t) => Variable (amount of practice)
+        self.erg = [None]*self.n_slots
+        self.erg_inc = {}         # (s, t) => Energy increase
+        self.erg_dec = {}         # (s, t) => Energy decrease
         self.time_so_far = {}     # (s, t) => Variable (amount of practice up to that point)
-        self.fun_level = {}       # (s, t) => Variable (metric corresponding to fun during that day/task)
         if item_names is None:
             item_names = ["item" + "_" + str(i) for i in range(0, n_items)]
         self.item_names = item_names
         self.total_practice_time = None
         self.item_timeliness_metric = None
-        self.fun_total = None
+        self.erg_deltas = None
+        self.erg_deltas = 0
 
     def build(self):
         # Variables - two-dimensional array tasks x time slot
@@ -90,29 +94,35 @@ class SimplePracticeScheduleSolver(LpProblem):
             for t in range(0, self.n_slots):
                 self.practice[(i, t)] = LpVariable("P_{}_{}".format(i, t), lowBound=0)
                 self.time_so_far[(i, t)] = LpVariable("T_{}_{}".format(i, t), lowBound=0)
-                self.fun_level[(i, t)] = LpVariable("T_{}_{}".format(i, t), lowBound=0)
+        # Energy usage variables
+        for t in range(0, self.n_slots):
+            self.erg_inc[t] = LpVariable("ERGINC_{}".format(t), lowBound=0)
+            self.erg_dec[t] = LpVariable("ERGDEC_{}".format(t), lowBound=0)
         # Objective function - minimize overall practice time for now
         self.total_practice_time = total_practice_time = sum(self.practice[(i, t)] for i in range(0, self.n_items) for t in range(0, self.n_slots))
         # and push things as far left as possible (does this work?)
         self.item_timeliness_metric = item_timeliness_metric = sum(self.time_so_far[(i, t)] for i in range(0, self.n_items) for t in range(0, self.n_slots))
+        # Energy used each day
+        for t in range(0, self.n_slots):
+            self.erg[t] = sum(self.erg_used[i]*self.practice[i, t] for i in range(0, self.n_items))
 
 
-        self.fun_total = fun_total = sum(self.fun_per_item[i]*self.practice[(i, t)] for i in range(0, self.n_items) for t in range(0, self.n_slots))
-
-
-
+        self.erg_deltas = sum((self.erg_inc[t] + self.erg_dec[t]) for t in range(0, self.n_slots))
 
         # Objective is to use the least amount of resource to complete tasks in
         # as timely a manner as possible while maximizing fun on a given day (i.e., ensuring a mix of boring
         # and non-boring tasks.
-        self.objective = COEFF_TIMELINESS*item_timeliness_metric + COEFF_FUN_TOTAL*fun_total - COEFF_TOTAL_PRACTICE_TIME*total_practice_time
+        self.objective = COEFF_TOTAL_PRACTICE_TIME*total_practice_time - self.erg_deltas
         # Constraints
         # Total time across tasks less than that available within a time slot (e.g., might be hours/day)
         for t in range(0, self.n_slots):
-            self += sum(self.practice[(i, t)] for i in range(0, self.n_items)) <= self.time_available[t]
+            self += sum(self.practice[(i, t)] for i in range(0, self.n_items)) <= self.time_avail[t]
+        # Like above except for energy
+        for t in range(0, self.n_slots):
+            self += sum(self.practice[(i, t)] for i in range(0, self.n_items)) <= self.time_avail[t]
         # Required time for each task.
         for i in range(0, self.n_items):
-            self += sum(self.practice[(i, t)] for t in range(0, self.n_slots)) >= self.time_per_item[i]
+            self += sum(self.practice[(i, t)] for t in range(0, self.n_slots)) >= self.time_per[i]
         # Definition of time so (we maximize sum of totals so far which tends to push to left.
         # Need to study this behavior more closely.
         for i in range(0, self.n_items):
@@ -124,13 +134,22 @@ class SimplePracticeScheduleSolver(LpProblem):
             for t in range(0, self.n_slots):
                 self += self.practice[(i, t)] <= 2
 
+        # Energy delta definition
+        for i in range(0, self.n_items-1):
+            for t in range(0, self.n_slots-1):
+                self += (self.erg_inc[t+1] - self.erg_dec[t+1]) == (self.erg[t+1] - self.erg[t])
+
+
         # Required rest periods per study item (independent of time studied at the moment)
         # Use a sliding window approximation. At least one practice session in every
         # window, and at least one rest. Sort of local density.
         for i in range(0, self.n_items):
-            for t in range(0, self.n_slots - self.window_size - 1):
-                self += sum(self.practice[(i, t+t_delta)] for t_delta in range(0, self.window_size)) >= self.min_practice_per_window
-                self += sum(self.practice[(i, t+t_delta)] for t_delta in range(0, self.window_size)) <= self.max_practice_per_window
+            for t in range(0, self.n_slots - self.win_sz - 1):
+                self += sum(self.practice[(i, t+t_delta)] for t_delta in range(0, self.win_sz)) >= self.min_per_win
+                self += sum(self.practice[(i, t+t_delta)] for t_delta in range(0, self.win_sz)) <= self.max_per_win
+
+
+
 
     def get_solution(self):
         status = self.solve()
@@ -145,15 +164,12 @@ class SimplePracticeScheduleSolver(LpProblem):
                 schedule_matrix[i, t] = value(self.practice[(i, t)])
         return schedule_matrix
 
-    def get_solution_fun_values(self):
-        return [sum(self.fun_per_item[i] * value(self.practice[(i, t)])
-                    for i in range(0, self.n_items)) for t in range(0, self.n_slots)]
 
     def get_solution_timeliness_values(self):
         return [sum(value(self.time_so_far[(i, t)])
                     for t in range(0, self.n_slots)) for i in range(0, self.n_items)]
 
-    def get_total_time_per_item_values(self):
+    def get_total_time_per_values(self):
         return [sum(value(self.practice[(i, t)])
                     for t in range(0, self.n_slots)) for i in range(0, self.n_items)]
 
@@ -172,15 +188,16 @@ class SimplePracticeScheduleSolver(LpProblem):
         return df
 
 
-def solve(n_items, time_available, time_per_item, fun_per_item, window_size=10, min_practice_per_window=1,
-          max_practice_per_window=4, item_names=None, min_slots=1, max_slots=40):
+def solve(n_items, time_avail, erg_avail, time_per, erg_used, win_sz=10, min_per_win=1,
+          max_per_win=4, item_names=None, min_slots=1, max_slots=40):
     n_slots = min_slots
     if VERBOSE:
         logging.info("Solving problem with the parameters:")
         logging.info("  n_items = {}".format(n_items))
-        logging.info("  time_available = {}".format(time_available))
-        logging.info("  time_per_item  = {}".format(time_per_item))
-        logging.info("  fun_per_item   = {}".format(fun_per_item))
+        logging.info("  time_avail = {}".format(time_avail))
+        logging.info("  time_avail = {}".format(erg_avail))
+        logging.info("  time_per  = {}".format(time_per))
+        logging.info("  erg_used   = {}".format(erg_used))
 
     while n_slots <= max_slots:
         if VERBOSE:
@@ -188,12 +205,13 @@ def solve(n_items, time_available, time_per_item, fun_per_item, window_size=10, 
         solver = SimplePracticeScheduleSolver("test",
                                               n_items=n_items,
                                               n_slots=n_slots,
-                                              time_available=time_available,
-                                              time_per_item=time_per_item,
-                                              fun_per_item=fun_per_item,
-                                              window_size=window_size,
-                                              min_practice_per_window=min_practice_per_window,
-                                              max_practice_per_window=max_practice_per_window,
+                                              time_avail=time_avail,
+                                              erg_avail=erg_avail,
+                                              time_per=time_per,
+                                              erg_used=erg_used,
+                                              win_sz=win_sz,
+                                              min_per_win=min_per_win,
+                                              max_per_win=max_per_win,
                                               item_names=item_names)
         solver.build()
         solution = solver.get_solution()
@@ -211,31 +229,35 @@ def _config(**kwargs):
 
 
 config_sonata3 = _config(n_items=25,
-                         time_available=[5]*50,
-                         time_per_item=[5]*25,
-                         fun_per_item=[1]*25,
-                         window_size=7,
-                         min_practice_per_window=1,
-                         max_practice_per_window=3)
+                         time_avail=[5]*50,
+                         erg_avail=[5]*50,
+                         time_per=[5]*25,
+                         erg_used=[1] * 25,
+                         win_sz=7,
+                         min_per_win=1,
+                         max_per_win=3)
 
 
 config_problem1 = _config(n_items=10,
-                          time_available=[5]*50, # FIXME: Better way to handlle this?
-                          time_per_item=[5, 3, 2, 3, 2, 3, 2, 2, 2, 4],
-                          fun_per_item=[0, 10, 2, 10, 2, 19, 2, 10, 2, 10],
-                          window_size=5,
-                          min_practice_per_window=1,
-                          max_practice_per_window=3,
+                          time_avail=[5]*50, # FIXME: Better way to handlle this?
+                          erg_avail=[5]*50,
+                          time_per=[5, 3, 2, 3, 2, 3, 2, 2, 2, 4],
+                          erg_used=[0, 10, 2, 10, 2, 19, 2, 10, 2, 10],
+                          win_sz=5,
+                          min_per_win=1,
+                          max_per_win=3,
                           item_names=["Hard", "Easy"]*5)
 
 
 config_small = _config(n_items=4,
-                       time_available=[2]*50,
-                       time_per_item=[2]*25,
-                       fun_per_item=[1, 1, 2, 2]*25,
-                       window_size=2,
-                       min_practice_per_window=0,
-                       max_practice_per_window=1)
+                       time_avail=[2]*50,
+                       erg_avail=[5]*50,
+                       time_per=[2]*25,
+                       erg_used=[1, 2, 1, 2]*25,
+                       item_names=["Easy", "Hard", "Easy", "Hard"],
+                       win_sz=2,
+                       min_per_win=0,
+                       max_per_win=1)
 
 
 def show_solution(solver):
@@ -243,27 +265,25 @@ def show_solution(solver):
     pd.set_option("display.width", 120)
     print("Schedule starting tomorrow:")
     print(solver.get_solution_as_df())
-    print("Fun by item")
-    print(solver.get_solution_fun_values(), "Total of", sum(solver.get_solution_fun_values()))
     print("Timeliness by item")
     print(solver.get_solution_timeliness_values(), "Total of", sum(solver.get_solution_timeliness_values()))
     print("Total time by item")
-    print(solver.get_total_time_per_item_values(), "Total of", sum(solver.get_total_time_per_item_values()))
+    print(solver.get_total_time_per_values(), "Total of", sum(solver.get_total_time_per_values()))
     print("Objective function z = {}".format(value(solver.objective)))
 
     total_time = sum([value(solver.practice[(i, t)])
                       for i in range(0, solver.n_items) for t in range(0, solver.n_slots)])
-    best_possible_time = sum(solver.time_per_item)
+    best_possible_time = sum(solver.time_per)
     print("Efficiency is {}/{} = {}".format(total_time, best_possible_time, total_time/best_possible_time))
 
     #print("Efficiency: minimum possible time over solution practice time: {}/{} = {}",
-    #      sum(solver.time_per_item), sum([for v in value(solver.get_total_time_per_item_values()])
-    #      sum(solver.time_per_item) / sum(value(solver.get_total_time_per_item_values()
+    #      sum(solver.time_per), sum([for v in value(solver.get_total_time_per_values()])
+    #      sum(solver.time_per) / sum(value(solver.get_total_time_per_values()
 
 
 if __name__ == "__main__":
 
-    print("Minimum possible total time for config_small", sum(config_problem1["time_per_item"]))
+    print("Minimum possible total time for config_small", sum(config_problem1["time_per"]))
     solver = solve(**config_small)
     show_solution(solver)
 
@@ -272,7 +292,7 @@ if __name__ == "__main__":
         show_solution(solver)
 
     if False:
-        print("Minimum possible total time", sum(config_problem1["time_per_item"]))
+        print("Minimum possible total time", sum(config_problem1["time_per"]))
         solvers = []
         solver = solve(**config_problem1)
         solvers.append(solver)
