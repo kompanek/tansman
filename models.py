@@ -177,7 +177,7 @@ class SimplePracticeScheduleSolver(LpProblem):
 
 
 def solve(n_items, time_avail, erg_avail, time_per, erg_used, win_sz=10, min_per_win=1,
-          max_per_win=4, item_names=None, min_slots=1, max_slots=40):
+          max_per_win=4, item_names=None, min_slots=1, max_slots=40, show_solutions=False):
     n_slots = min_slots
     if VERBOSE:
         logging.info("Solving problem with the parameters:")
