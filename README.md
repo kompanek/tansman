@@ -6,6 +6,9 @@ and then a model based mixed integer programming. The challenge is going to be
 dealing with the fact that learning models are intrinsically stateful, and that
 some of the relationships aren't really linear.
 
+My models are written up in [Models.ipynb](Models.ipynb). The corresponding
+code (such as it is) is in [models.py](models.py).
+
 # Problem and Motivation
 
 Every musician, professional and amateur alike, has faced the challenge of
