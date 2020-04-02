@@ -1,7 +1,3 @@
-Test:
-
-$y = x^2$
-
 # Tansman music practice scheduler tool
 
 An attempt at building an LP-based optimal scheduler for music practice using
