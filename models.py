@@ -162,14 +162,16 @@ class SimplePracticeScheduleSolver(LpProblem):
                     for t in range(0, self.n_slots)) for i in range(0, self.n_items)]
 
     def get_solution_as_df(self, start_time=None):
+        day_of_week = ["Su", "M", "T", "W", "Th",
+                       "Fr", "Sa"]
         if start_time is None:
             start_time = datetime.datetime.now() + datetime.timedelta(days=1)
         m = self.get_solution()
         data = dict({})
         data["name"] = self.item_names
         for t in range(0, self.n_slots):
-            #data[str(t)] = m[:, t]
             date_string = (start_time + t * datetime.timedelta(days=1)).strftime("%m/%d")
+            date_string = day_of_week[(start_time + t * datetime.timedelta(days=1)).isoweekday()-1] + ", " + date_string
             data[date_string] = m[:, t]
         df = pd.DataFrame(data)
 
@@ -248,6 +250,15 @@ config_small = _config(n_items=4,
                        max_per_win=2)
 
 
+config_test = {'n_items': 10,
+               'time_avail': [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+               'erg_avail': [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+               'time_per': [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+               'erg_used': [1, 2, 2, 1, 2, 1, 2, 1, 2, 1],
+               'item_names': ['Phrase-1', 'Phrase-2', 'Phrase-3', 'Phrase-4', 'Phrase-5', 'Phrase-6', 'Phrase-7', 'Phrase-8', 'Phrase-9', 'Phrase-10'],
+               'win_sz': 3, 'min_per_win': 1, 'max_per_win': 2}
+
+
 def show_solution(solver):
     pd.set_option("display.max_columns", 50)
     pd.set_option("display.width", 120)
@@ -256,37 +267,24 @@ def show_solution(solver):
     repractice_tot_min = 0
     repractice_tot_actual = 0
     for i in range(0, solver.n_items):
-        num = value(sum(solver.practice[i, t] for t in range(0, solver.n_slots)) - solver.time_per[i])
-        ratio = num/solver.time_per[i]
+        num = value(sum(solver.practice[i, t] for t in range(0, solver.n_slots)))
+        ratio = solver.time_per[i]/num
         repractice_tot_actual += value(sum(solver.practice[i, t] for t in range(0, solver.n_slots)))
         repractice_tot_min += solver.time_per[i]
-        print("item {} re-practice ratio = {}".format(i, ratio))
+        print("item {} time efficiency = {}".format(i, ratio))
     print("Overall re-practice ratio is {}\n".format((repractice_tot_actual - repractice_tot_min)/repractice_tot_min))
-
-    #print("Timeliness by item")
-    #print(solver.get_solution_timeliness_values(), "Total of", sum(solver.get_solution_timeliness_values()))
-    #print("Total time by item")
-    #print(solver.get_total_time_per_values(), "Total of", sum(solver.get_total_time_per_values()))
-    #print("Objective function z = {}".format(value(solver.objective)))
-
-    #total_time = sum([value(solver.practice[(i, t)])
-    #                  for i in range(0, solver.n_items) for t in range(0, solver.n_slots)])
-    #best_possible_time = sum(solver.time_per)
-    #print("Efficiency is {}/{} = {}".format(total_time, best_possible_time, total_time/best_possible_time))
-
-    #print("Efficiency: minimum possible time over solution practice time: {}/{} = {}",
-    #      sum(solver.time_per), sum([for v in value(solver.get_total_time_per_values()])
-    #      sum(solver.time_per) / sum(value(solver.get_total_time_per_values()
-
 
 if __name__ == "__main__":
 
     print("Minimum possible total time for config_small", sum(config_problem1["time_per"]))
 
-    for slot_count in [4, 7, 12]:
-        solver = solve(**config_small, min_slots=slot_count, max_slots=slot_count)
-        if solver.status == LpStatusOptimal:
-            show_solution(solver)
+    solver = solve(**config_test)
+    show_solution(solver)
+
+    #for slot_count in [4, 7, 12]:
+    #    solver = solve(**config_small, min_slots=slot_count, max_slots=slot_count)
+    #    if solver.status == LpStatusOptimal:
+    #        show_solution(solver)
 
     if False:
         solver = solve(**config_sonata3)
