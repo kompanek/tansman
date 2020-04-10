@@ -63,39 +63,22 @@ In addition to the required presentation, deliverables will include:
 * A Python module implementing the underlying model
 * A Jupyter notebook with examples
 
-# Overall concept
-
-Focus on finding a reasonable solution that meets constraints capturing some of
-those inputs and a larger goal. In particular, given a larger goal--say,
-mastering a particular section of a large piece of music--, and set of tasks
-that require a certain amount of practice (units of practice time) and entail
-certain constraints, a particular amount of calendar time (number of slots), and
-a particular amount of time available per slot (units of practice time), is
-there a feasible schedule?
-
-* A practice *item* is a chunk of music, technique exercise, etc.
-* A time *slot* corresponds to a unit of time like a day or a practice session
-
-The schedule produced is a matrix. The amount of practice time spent 
-on a particular task (row) in a particular time slot (column). 
-
 ## Practical application
 
-This is applied in the context of a work flow and algorithm like:
+In imagine that the use of the scheduler will be the context
+of a work flow that looks something like this:
 
 1. User breaks up the tasks to be completed into logical
    groupings. Each grouping represent a set of tasks 
    that the user wants to bring to the next level. 
-1. Goal is to reach "next level" of competence (which corresponds
-   to different parameters, in particular permitting more time to
-   pass until an item is revisted and practiced again corresponding
-   to a firmer grasp on the material, and natural spacing)
-1. User specifies time available per slot, descriptions of items,
-   etc.
-1. User has choice to runs scheduler tool with an explicit number
-   of time slots or have the scheduler iterate into it finds 
-   a feasible solution.
-1. Schedule is the matrix described, rendered in a meaningful way
+1. Goal is to reach "next level" of competence for each of
+   the items. For example, this might be memorizing 
+   a particular passage, working out an interpretation of a 
+   passage, or addressing a particular techncial challenge.
+1. User specifies time available on particular days,
+    descriptions of items,
+   and estimates of time requirements and other features. T
+1. The user generates and schedule and iterates on above.
 
 I'd also want to update the software to allow names to be assigned
 to items, and to map slots to actual dates and times. This is
