@@ -58,7 +58,7 @@ practice experience. The inputs will include:
 
 # Deliverables
 
-In addition to the required presentation, deliverables will include:
+In addition to the report and presentation, deliverables will include:
 
 * A Python module implementing the underlying model
 * A Jupyter notebook with examples
