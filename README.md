@@ -1,61 +1,67 @@
 # Tansman music practice scheduler tool
 
-An attempt at building an LP-based optimal scheduler for music practice using
-Pulp. My goal is to build a sort of idealized normative optization model, a model based purely on LP, 
-and then a model based mixed integer programming. The challenge is going to be
-dealing with the fact that learning models are intrinsically stateful, and that
-some of the relationships aren't really linear.
+For this project, I will build an LP-based optimal scheduling tool for music practice using
+Pulp. 
 
-My models are written up in [Models.ipynb](Models.ipynb). The corresponding
-code (such as it is) is in [models.py](models.py).
+My models will be documented in [Models.ipynb](Models.ipynb).
+
+The corresponding code (such as it is) is in [models.py](models.py).
 
 # Problem and Motivation
 
 Every musician, professional and amateur alike, has faced the challenge of
 making efficient use of practice time. In the course of learning a long, complex
 piece of music, we can easily fall into patterns where we know that we're not
-making the best of my practice time. One way in which we can make better use of
+making the the most efficient use of practice time. One way in which we can make better use of
 our time is of course planning up front. This project is about building a system
-for generating a schedule automatically given some information about the
-practice items, and the time available.
+for generating a schedule automatically given some information about a set of
+practice items, the time available and parameters that feed a 
+simple personalized utility function.
 
 The work is motivated by trying to address several types of traps encountered when
 trying to establish a practice regime:
 
 * The "over-commitment" trap. It's easy when confronted with a large piece not to
 appreciate the amount of calendar time required, especially given the
-requirements of rest for consolidation.
+need to take breaks.
 
-* The "ineffective repetition" trap. The first variation, "masochistic repetition" is what
-happens I'm so fixated on a particular difficult passage that I ignore
-everything else even though it's clear the repetition is at best leading to
-diminishing returns and at worse simply reinforcing problems. 
-
-* The "hedonistic repetition" trap. This occurs
-when I manage to master a small section of music and repeatedly play it because
-it satisfies a need to feel good about progress, and perhaps as an avoidance
-measure. 
+* The "ineffective repetition" trap. A particular difficult passage often requires
+a large number of short sessions. Spending too much time at one sitting quickly
+leads to diminishing returns. It can also lead to the reinforcement of bad happens. 
+A particular engaging and/or easy section can lead to a similar pattern.
 
 * The "insufficient reinforcement" trap. In this
 case, you make progress on a particular section, and move onto another, but fail
-to revisit the original piece within a sufficient period of time. Inevitably, I
-end up having to relearn the passage. 
+to revisit the original piece within a sufficient period of time. This can lead
+to having to re-learn a passage.
 
-The theoretical model motivating this is the "spaced repetition" model in learning.
+The theoretical model motivating this is the "spaced repetition" learning model 
+that underlies the approach taken by tools like DuoLingo. In this project,
+I won't be implementing spaced repetition training system, but the goal is to
+draw from some of the same principles.
 
-# Thinking about inputs
+# Data
 
-* Time available per session to practice
-* Number of sessions each day
+I'll build a set of models that are used to evaluate the features of the 
+formulation, as well as a small model of an actual piece that I'm learning.
+This will involve some estimation of the practice time required based
+on past experience, and subjective assessments of what constitutes a good
+practice experience. The inputs will include:
+
+* Time available per session to practice, and number of sessions each day
 * An estimate of time needed to master each practice item (e.g., phrase or passage)
 * A way to related items it's beneficial to practice together in the same session
 * Overall time available for a set of related items (e.g., a section of music)
-* The difficulty vs. fun dimensions of a particular task--idea is that
-  a practice session should include both practice that feels like a chore
-  and more fun/interesting tasks (below use "energy" in a sense of how much
-  of a drain it is on enthusiasm. There's probably a better name.)
-* Ideal amount of time to wait between practicing each item (consolidation)
+* Characterization of the intensity, fun, etc. associated with items
+* Ideal amount of time to wait between practicing each item (for memory consolidation)
 * Maximum time to wait between sessions practicing each item (forgetting)
+
+# Deliverables
+
+In addition to the required presentation, deliverables will include:
+
+* A Python module implementing the underlying model
+* A Jupyter notebook with examples
 
 # Overall concept
 
