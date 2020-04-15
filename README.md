@@ -99,3 +99,13 @@ using LP or mixed IP that approximates this?
   https://en.wikipedia.org/wiki/Spaced_repetition
 
 * http://pianopracticeassistant.com/spaced-repetition/
+
+* "Practice Planner: A Journal of Goals and Progress". Harvey R Snitkin
+
+* "The Art of Practicing". Madeline Bruser.
+
+* "On Practicing: A manual for students of guitar performance". Ricardo Iznaola. Not really
+  much more than a pamphlet but a pretty good summary of challenges and approaches. 
+  Defines distribution of practice time: Building time, interpretive time, performing time, allocation of 
+  time during sessions. Recommends 2-3 hours per day for college-level professional students,
+  and has other useful distinctions in a section on "Time-Allocation of Materials".
