@@ -105,11 +105,11 @@ class SimplePracticeScheduleSolver(LpProblem):
         # Objective is to use the least amount of resource to complete tasks in
         # as timely a manner as possible while maximizing fun on a given day (i.e., ensuring a mix of boring
         # and non-boring tasks.
-        self.objective = total_practice_time + self.erg_deltas - self.item_timeliness_metric
+        self.objective = total_practice_time - 0*sum(self.time_per[i] for i in range(0, self.n_items)) + self.erg_deltas + self.item_timeliness_metric
         # Constraints
         # Total time across tasks less than that available within a time slot (e.g., might be hours/day)
         for t in range(0, self.n_slots):
-            self += sum(self.practice[(i, t)] for i in range(0, self.n_items)) <= self.time_avail[t]
+            self += sum(self.practice[(i, t)] for i in range(0, self.n_items)) == self.time_avail[t]
         # Like above except for energy
         for t in range(0, self.n_slots):
             self += sum(self.practice[(i, t)] for i in range(0, self.n_items)) <= self.time_avail[t]
@@ -272,6 +272,7 @@ def show_solution(solver):
         repractice_tot_actual += value(sum(solver.practice[i, t] for t in range(0, solver.n_slots)))
         repractice_tot_min += solver.time_per[i]
         print("item {} time efficiency = {}".format(i, ratio))
+    print("Objective function is {}".format(value(solver.objective)))
     print("Overall re-practice ratio is {}\n".format((repractice_tot_actual - repractice_tot_min)/repractice_tot_min))
 
 if __name__ == "__main__":
