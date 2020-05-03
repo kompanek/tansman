@@ -27,7 +27,7 @@ need to take breaks.
 
 * The "ineffective repetition" trap. A particular difficult passage often requires
 a large number of short sessions. Spending too much time at one sitting quickly
-leads to diminishing returns. It can also lead to the reinforcement of bad happens. 
+leads to diminishing returns. It can also lead to the reinforcement of bad habits. 
 A particular engaging and/or easy section can lead to a similar pattern.
 
 * The "insufficient reinforcement" trap. In this

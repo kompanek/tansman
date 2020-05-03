@@ -281,6 +281,9 @@ if __name__ == "__main__":
     solver = solve(**config_test)
     show_solution(solver)
 
+    solver2 = solve(**config_test, min_slots=15, max_slots=15)
+    show_solution(solver2)
+
     #for slot_count in [4, 7, 12]:
     #    solver = solve(**config_small, min_slots=slot_count, max_slots=slot_count)
     #    if solver.status == LpStatusOptimal:
